@@ -10,8 +10,12 @@ if (platform() === 'darwin' && !env.CARGO_TARGET_DIR) {
   console.info('[desktop:dev] macOS suppresses dev notifications when the binary is under Documents/Desktop/Downloads.');
 }
 
-const executable = platform() === 'win32' ? 'pnpm.cmd' : 'pnpm';
-const child = spawn(executable, ['exec', 'tauri', 'dev', ...process.argv.slice(2)], {
+const pnpmArgs = ['exec', 'tauri', 'dev', ...process.argv.slice(2)];
+const isWindows = platform() === 'win32';
+const executable = isWindows ? (process.env.ComSpec ?? 'cmd.exe') : 'pnpm';
+const args = isWindows ? ['/d', '/c', 'pnpm.cmd', ...pnpmArgs] : pnpmArgs;
+
+const child = spawn(executable, args, {
   env,
   stdio: 'inherit',
 });

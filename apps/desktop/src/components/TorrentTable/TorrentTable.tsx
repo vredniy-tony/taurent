@@ -738,7 +738,7 @@ export const TorrentTable: React.FC<TorrentTableProps> = ({
             <div className="flex-1 min-h-0 overflow-auto">
               {/* Header */}
               <div className="flex-none">
-<table className="border-collapse table-fixed" style={{ width: `${tableMinWidth}px` }}>
+                <table className="border-collapse table-fixed" style={{ width: `${tableMinWidth}px` }}>
                   {renderColGroup()}
                   <thead className="sticky top-0 z-10 bg-surface">
                     {renderHeaderRow()}
@@ -862,12 +862,12 @@ export const TorrentTable: React.FC<TorrentTableProps> = ({
           <div ref={bodyRef} className="flex-1 min-h-0 overflow-auto">
             {/* Header — sticky so it stays visible when scrolling vertically */}
             <div className="flex-none">
-<table className="w-full min-w-0 border-collapse table-fixed" style={{ minWidth: `${tableMinWidth}px` }}>
-                  {renderColGroup()}
-                  <thead className="sticky top-0 z-10 bg-surface">
-                    {renderHeaderRow()}
-                  </thead>
-                </table>
+              <table className="border-collapse table-fixed" style={{ width: `${tableMinWidth}px` }}>
+                {renderColGroup()}
+                <thead className="sticky top-0 z-10 bg-surface">
+                  {renderHeaderRow()}
+                </thead>
+              </table>
               </div>
 
               {/* Body */}

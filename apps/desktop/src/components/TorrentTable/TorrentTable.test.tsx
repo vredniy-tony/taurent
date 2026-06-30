@@ -243,6 +243,24 @@ describe('TorrentTable — rendering smoke', () => {
     expect(rows.length).toBe(20);
   });
 
+  it('keeps virtualized header and body tables on the same fixed width', () => {
+    const torrents = createTorrentList(100);
+    const { container } = render(
+      <div style={{ height: '600px', overflow: 'auto' }}>
+        <TorrentTable torrents={torrents} {...defaultProps} />
+      </div>
+    );
+
+    const tables = container.querySelectorAll('table');
+    const headerTable = tables[0] as HTMLTableElement | undefined;
+    const bodyTable = tables[1] as HTMLTableElement | undefined;
+
+    expect(headerTable).toBeTruthy();
+    expect(bodyTable).toBeTruthy();
+    expect(headerTable?.style.width).toBe(bodyTable?.style.width);
+    expect(headerTable?.style.minWidth).toBe('');
+  });
+
   it('renders 1000 torrents with deterministic virtualizer rows', () => {
     const torrents = createTorrentList(1000);
     const { container } = render(
