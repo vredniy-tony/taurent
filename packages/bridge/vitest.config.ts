@@ -1,18 +1,15 @@
 import { defineProject } from 'vitest/config';
-import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineProject({
-  plugins: [react()],
   resolve: {
     alias: {
-      '@taurent/bridge': path.resolve(__dirname, '../bridge/src'),
       '@taurent/shared': path.resolve(__dirname, '../shared/src'),
     },
   },
   test: {
     globals: true,
-    environment: 'jsdom',
-    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
   },
 });
