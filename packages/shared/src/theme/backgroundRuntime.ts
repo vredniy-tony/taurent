@@ -43,3 +43,8 @@ export function resolveCurrentThemeBackground(): string {
 export function resolveCurrentThemeBackgroundRgba(): [number, number, number, number] {
   return hexToRgba(resolveCurrentThemeBackground());
 }
+
+/** Resolve an OS-scheme background for native window creation/chrome. */
+export function resolveSystemThemeBackgroundRgba(): [number, number, number, number] {
+  return hexToRgba(getSystemThemeVariant() === 'dark' ? DEFAULT_THEME_BACKGROUND : getThemeBackground('theme-solarized-light'));
+}

@@ -3,7 +3,7 @@ import { LogicalPosition, LogicalSize } from '@tauri-apps/api/dpi';
 import { WebviewWindow, getAllWebviewWindows } from '@tauri-apps/api/webviewWindow';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import type { WebviewWindow as TauriWebviewWindow } from '@tauri-apps/api/webviewWindow';
-import { resolveCurrentThemeBackgroundRgba } from '@taurent/shared/theme/backgroundRuntime';
+import { resolveSystemThemeBackgroundRgba } from '@taurent/shared/theme/backgroundRuntime';
 
 export interface AuxWindowConfig {
   label: string;
@@ -257,9 +257,9 @@ export async function openAuxWindow(
     x,
     y,
     visible: false,
-    // Match the current theme background so the OS-level webview background is correct
-    // from the moment the window is created, preventing any color flash.
-    backgroundColor: resolveCurrentThemeBackgroundRgba(),
+    // Match the OS scheme for native window creation so macOS title-bar text
+    // follows the system appearance even when Taurent content uses a manual theme.
+    backgroundColor: resolveSystemThemeBackgroundRgba(),
   });
 
   win.once('tauri://destroyed', () => {
