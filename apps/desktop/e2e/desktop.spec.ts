@@ -144,7 +144,7 @@ test.describe('table sort', () => {
   test('sorts by name without page errors', async ({ page }) => {
     await goToScenario(page, 'small-100');
     await clickSortableHeader(page, 'Name');
-    await expectFirstVisibleTorrentName(page, 'Torrent 99');
+    await expectFirstVisibleTorrentName(page, 'Torrent 1');
     await expectTableWithRows(page, 1);
   });
 
@@ -157,6 +157,20 @@ test.describe('table sort', () => {
 
   test('sorts by size without page errors', async ({ page }) => {
     await goToScenario(page, 'small-100');
+    await clickSortableHeader(page, 'Size');
+    await expectFirstVisibleTorrentName(page, 'Torrent 100');
+    await expectTableWithRows(page, 1);
+  });
+
+  test('switches from name to added on to size using each column default direction', async ({ page }) => {
+    await goToScenario(page, 'small-100');
+
+    await clickSortableHeader(page, 'Name');
+    await expectFirstVisibleTorrentName(page, 'Torrent 1');
+
+    await clickSortableHeader(page, 'Added On');
+    await expectFirstVisibleTorrentName(page, 'Torrent 100');
+
     await clickSortableHeader(page, 'Size');
     await expectFirstVisibleTorrentName(page, 'Torrent 100');
     await expectTableWithRows(page, 1);

@@ -36,8 +36,8 @@ const DOUBLE_CLICK_DELAY = 300;
 
 const ALIGNMENT_CLASS_NAMES: Record<ColumnDefinition['align'], string> = {
   left: 'text-left',
-  center: 'text-left',
-  right: 'text-left',
+  center: 'text-center',
+  right: 'text-right',
 };
 
 const TRUNCATED_COLUMN_IDS = new Set([

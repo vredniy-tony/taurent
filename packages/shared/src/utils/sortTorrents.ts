@@ -309,6 +309,10 @@ export const SORT_OPTIONS: {
   { value: 'popularity', label: 'Popularity', icon: 'TrendingUp', defaultOrder: 'desc' },
 ];
 
+export function getDefaultSortOrder(field: SortField): SortOrder {
+  return SORT_OPTIONS.find((option) => option.value === field)?.defaultOrder ?? 'asc';
+}
+
 export function isValidSortField(value: string): value is SortField {
   return ALL_SORT_FIELDS.includes(value as SortField);
 }

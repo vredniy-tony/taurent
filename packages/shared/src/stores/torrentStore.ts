@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Torrent, Category } from '../types/qbittorrent';
-import type { SortField } from '../utils/sortTorrents';
+import { getDefaultSortOrder, type SortField } from '../utils/sortTorrents';
 import type { FilterStatus } from '../utils/torrentFilter';
 
 /**
@@ -133,7 +133,10 @@ export const useTorrentStore = create<TorrentStore>((set) => ({
 
   // Sorting actions
   setSortField: (field) => {
-    set({ sortField: field });
+    set((state) => ({
+      sortField: field,
+      sortDirection: state.sortField === field ? state.sortDirection : getDefaultSortOrder(field),
+    }));
   },
 
   setSortDirection: (direction) => {
