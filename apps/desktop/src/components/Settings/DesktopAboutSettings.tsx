@@ -6,9 +6,12 @@ export const DesktopAboutSettings = React.memo(() => {
   return (
     <div className="rounded-sm border border-border bg-surface p-3">
       <div className="flex flex-col items-center text-center">
-        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-sm bg-primary/10">
-          <span className="text-lg font-bold text-primary">Q</span>
-        </div>
+        <img
+          src="/logo.svg"
+          alt="Taurent app icon"
+          className="mb-3 h-10 w-10 rounded-sm"
+          draggable={false}
+        />
         <h2 className="text-sm font-semibold text-text-primary">Taurent</h2>
         <p className="mt-1 text-xs text-text-secondary">Version {appBuildMetadata.version}</p>
         {appBuildMetadata.diagnostics.length > 0 ? (

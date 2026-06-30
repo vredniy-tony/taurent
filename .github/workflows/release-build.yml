@@ -29,6 +29,7 @@ jobs:
     outputs:
       release_tag: ${{ steps.release.outputs.release_tag }}
       app_version: ${{ steps.release.outputs.app_version }}
+      is_prerelease: ${{ steps.release.outputs.is_prerelease }}
       git_sha: ${{ steps.build_metadata.outputs.git_sha }}
     steps:
       - name: Resolve release tag
@@ -47,7 +48,14 @@ jobs:
           fi
 
           echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
-          echo "app_version=${release_tag#v}" >> "$GITHUB_OUTPUT"
+          app_version="${release_tag#v}"
+          echo "app_version=$app_version" >> "$GITHUB_OUTPUT"
+
+          if [[ "$app_version" == *-* ]]; then
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Checkout
         uses: actions/checkout@v7
@@ -71,6 +79,9 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
+      - name: Apply release tag version
+        run: node scripts/version-app.mjs "${{ steps.release.outputs.app_version }}"
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@1.90.0
         with:
@@ -93,6 +104,9 @@ jobs:
         env:
           RELEASE_TAG: ${{ steps.release.outputs.release_tag }}
         run: node scripts/ci/check-versions.mjs
+
+      - name: Script tests
+        run: node --test scripts/version-app.test.mjs scripts/ci/check-versions.test.mjs scripts/release/prepare-release-assets.test.mjs
 
       - name: Lint
         run: pnpm lint
@@ -171,6 +185,9 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
+      - name: Apply release tag version
+        run: node scripts/version-app.mjs "${{ needs.release-preflight.outputs.app_version }}"
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@1.90.0
         with:
@@ -183,6 +200,11 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Check app versions
+        env:
+          RELEASE_TAG: ${{ needs.release-preflight.outputs.release_tag }}
+        run: node scripts/ci/check-versions.mjs
 
       - name: Install Linux deps
         if: matrix.name == 'Linux'
@@ -247,6 +269,9 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
+      - name: Apply release tag version
+        run: node scripts/version-app.mjs "${{ needs.release-preflight.outputs.app_version }}"
+
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
@@ -275,26 +300,37 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check app versions
+        env:
+          RELEASE_TAG: ${{ needs.release-preflight.outputs.release_tag }}
+        run: node scripts/ci/check-versions.mjs
+
       - name: Regenerate ignored Android project
         run: pnpm --filter taurent-mobile tauri android init
 
-      - name: Build unsigned Android release APKs
+      - name: Build unsigned Android release APK
         env:
           VITE_APP_VERSION: ${{ needs.release-preflight.outputs.app_version }}
           VITE_RELEASE_TAG: ${{ needs.release-preflight.outputs.release_tag }}
           VITE_GIT_SHA: ${{ needs.release-preflight.outputs.git_sha }}
-        run: pnpm --filter taurent-mobile tauri android build --apk --split-per-abi
+        run: pnpm --filter taurent-mobile tauri android build --apk
 
-      - name: Collect Android release APKs
+      - name: Collect Android release APK
+        shell: bash
         run: |
           mkdir -p artifacts/release/android
           find apps/mobile/src-tauri/gen/android/app/build/outputs/apk -path '*/release/*.apk' -type f -print -exec cp {} artifacts/release/android/ \;
-          test -n "$(find artifacts/release/android -name '*.apk' -type f -print -quit)"
+          apk_count="$(find artifacts/release/android -name '*.apk' -type f | wc -l | tr -d ' ')"
+          if [[ "$apk_count" != "1" ]]; then
+            echo "Expected exactly one universal Android APK, found $apk_count." >&2
+            find artifacts/release/android -name '*.apk' -type f -print >&2
+            exit 1
+          fi
 
       - name: Upload Android artifact
         uses: actions/upload-artifact@v7
         with:
-          name: taurent-android-unsigned-release-apks
+          name: taurent-android-unsigned-release-apk
           path: artifacts/release/android/*.apk
           if-no-files-found: error
 
@@ -305,35 +341,53 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-preflight.outputs.release_tag }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
       - name: Download release artifacts
         uses: actions/download-artifact@v7
         with:
           path: release-assets
+
+      - name: Prepare release assets
+        env:
+          RELEASE_TAG: ${{ needs.release-preflight.outputs.release_tag }}
+        run: node scripts/release/prepare-release-assets.mjs
 
       - name: Publish release assets
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ needs.release-preflight.outputs.release_tag }}
+          IS_PRERELEASE: ${{ needs.release-preflight.outputs.is_prerelease }}
         shell: bash
         run: |
-          mkdir -p release-upload
-          while IFS= read -r -d '' asset; do
-            relative="${asset#release-assets/}"
-            artifact_name="${relative%%/*}"
-            basename="$(basename "$asset")"
-            cp "$asset" "release-upload/${artifact_name}-${basename}"
-          done < <(find release-assets -type f -print0)
-
           mapfile -d '' assets < <(find release-upload -type f -print0)
           if [[ "${#assets[@]}" -eq 0 ]]; then
             echo "No release assets found." >&2
             exit 1
           fi
 
+          edit_flags=(--title "$RELEASE_TAG" --draft=false)
+          create_flags=(--title "$RELEASE_TAG" --notes "Automated unsigned release build for $RELEASE_TAG.")
+          if [[ "$IS_PRERELEASE" == "true" ]]; then
+            edit_flags+=(--prerelease)
+            create_flags+=(--prerelease --latest=false)
+          else
+            edit_flags+=(--latest)
+            create_flags+=(--latest)
+          fi
+
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release edit "$RELEASE_TAG" --title "$RELEASE_TAG" --latest --draft=false
+            gh release edit "$RELEASE_TAG" "${edit_flags[@]}"
             gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
           else
-            gh release create "$RELEASE_TAG" "${assets[@]}" --title "$RELEASE_TAG" --notes "Automated unsigned release build for $RELEASE_TAG." --latest
+            gh release create "$RELEASE_TAG" "${assets[@]}" "${create_flags[@]}"
           fi

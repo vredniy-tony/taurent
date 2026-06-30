@@ -74,5 +74,14 @@ if (releaseTag) {
     fail(`release tag must start with "v". Got: ${releaseTag}`);
   }
 
-  console.log(`Release tag: ${releaseTag} (app version in code: ${appVersions.desktop})`);
+  const releaseVersion = releaseTag.slice(1);
+  if (!SEMVER_PATTERN.test(releaseVersion)) {
+    fail(`release tag must be v-prefixed SemVer. Got: ${releaseTag}`);
+  }
+
+  if (appVersions.desktop !== releaseVersion) {
+    fail(`release tag ${releaseTag} does not match app version ${appVersions.desktop}`);
+  }
+
+  console.log(`Release tag matches app version: ${releaseTag}`);
 }

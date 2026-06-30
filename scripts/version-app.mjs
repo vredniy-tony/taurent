@@ -22,6 +22,8 @@ const cargoFiles = [
   'apps/mobile/src-tauri/Cargo.toml',
 ];
 
+const cargoLockPackages = ['taurent', 'taurent-mobile'];
+
 function replaceVersion(file, pattern, replacement) {
   const contents = readFileSync(file, 'utf8');
   if (!pattern.test(contents)) {
@@ -33,12 +35,24 @@ function replaceVersion(file, pattern, replacement) {
   writeFileSync(file, next);
 }
 
+function replaceCargoLockPackageVersion(packageName) {
+  const file = 'Cargo.lock';
+  const contents = readFileSync(file, 'utf8');
+  const pattern = new RegExp(`(\\[\\[package\\]\\]\\nname = "${packageName}"\\nversion = ")[^"\\n]+(")`);
+
+  replaceVersion(file, pattern, `$1${version}$2`);
+}
+
 for (const file of jsonFiles) {
   replaceVersion(file, /"version"\s*:\s*"[^"\n]+"/, `"version": "${version}"`);
 }
 
 for (const file of cargoFiles) {
   replaceVersion(file, /^version\s*=\s*["'][^"'\n]+["']/m, `version = "${version}"`);
+}
+
+for (const packageName of cargoLockPackages) {
+  replaceCargoLockPackageVersion(packageName);
 }
 
 console.log(`Updated Taurent app version to ${version}`);
