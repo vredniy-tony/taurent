@@ -31,20 +31,15 @@ export function AppUpdateBanner() {
     if (startupCheckCompleted) return;
     startupCheckCompleted = true;
 
-    let cancelled = false;
     void BridgeAdapter.checkForUpdate()
       .then((update) => {
-        if (!cancelled && update) {
+        if (update) {
           setState({ status: 'available', update });
         }
       })
       .catch(() => {
         // Startup update checks stay quiet. Manual checks surface errors in About.
       });
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   const handleInstall = useCallback(async (update: AppUpdateInfo) => {
