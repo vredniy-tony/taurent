@@ -130,7 +130,7 @@ jobs:
           WEBKIT_DISABLE_COMPOSITING_MODE: '1'
           LIBGL_ALWAYS_SOFTWARE: '1'
         run: |
-          dbus-run-session -- xvfb-run -a --server-args="-screen 0 1280x1024x24 -ac +extension GLX +render -noreset" pnpm --filter taurent exec tsx scripts/e2e/runner.ts --skip-build
+          xvfb-run -a --server-args="-screen 0 1280x1024x24 -ac +extension GLX +render -noreset" dbus-run-session -- pnpm --filter taurent exec tsx scripts/e2e/runner.ts --skip-build
 
       - name: Upload native Tauri diagnostics
         if: failure()
