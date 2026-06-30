@@ -11,6 +11,7 @@ import { FiltersScreen } from './screens/FiltersScreen';
 import { DialogHostScreen } from './screens/DialogHostScreen';
 import { useKeyboardShortcuts } from './hooks/shell/useKeyboardShortcuts';
 import { useTorrentFileOpen } from './hooks/shell/useTorrentFileOpen';
+import { useDisableWebviewContextMenu } from './hooks/shell/useDisableWebviewContextMenu';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { AuthBoundary } from './auth/AuthBoundary';
 import { AuxWindowLayout } from './windows/layout/AuxWindowLayout';
@@ -147,6 +148,7 @@ function AppNotifications() {
 
 function AppContent() {
   const routerReadyRef = useRef(false);
+  useDisableWebviewContextMenu();
 
   useEffect(() => {
     if (!routerReadyRef.current) {
