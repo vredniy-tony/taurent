@@ -18,7 +18,7 @@
     "desktop:perf:compare": "pnpm --filter taurent perf:compare",
     "desktop:perf:check": "pnpm --filter taurent perf:check",
     "desktop:test": "pnpm --filter taurent test",
-    "test:unit": "pnpm --filter @taurent/shared test && pnpm --filter @taurent/bridge test && pnpm --filter @taurent/web-core test && pnpm --filter taurent test",
+    "test:unit": "vitest run",
     "desktop:test:browser": "pnpm --filter taurent test:browser",
     "desktop:renderer:e2e": "pnpm --filter taurent renderer:e2e",
     "desktop:tauri:e2e": "pnpm --filter taurent tauri:e2e",
@@ -55,7 +55,8 @@
     "globals": "^17.7.0",
     "simple-git-hooks": "^2.13.1",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.62.0"
+    "typescript-eslint": "^8.62.0",
+    "vitest": "4.1.9"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm ci:pre-commit",
